@@ -1,0 +1,7 @@
+{
+    "Technology": ["Software Engineer", "CTO", "Product Manager", "DevOps Engineer"],
+    "Healthcare": ["Medical Director", "Operations Manager", "Supply Chain Lead", "Procurement Head"],
+    "Finance": ["Financial Analyst", "VP of Finance", "Investment Manager", "Risk Officer"],
+    "Retail": ["Supply Chain Manager", "Marketing Director", "Store Manager", "Buyer"],
+    "Manufacturing": ["Plant Manager", "Production Supervisor", "Quality Control Lead", "Operations Director"]
+}

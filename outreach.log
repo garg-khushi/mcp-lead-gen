@@ -1,0 +1,28 @@
+2026-01-07 21:18:34,813 - INFO - Starting batch of 3 messages. Mode: DRY RUN
+2026-01-07 21:18:34,813 - INFO - Processing lead: donald.garcia@rodriguezfigueroaandsanchez.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send email to donald.garcia@rodriguezfigueroaandsanchez.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send LinkedIn DM to https://www.linkedin.com/in/donald-garcia
+2026-01-07 21:18:34,813 - INFO - Processing lead: jeffery.wagner@millerhendersonandjohnson.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send email to jeffery.wagner@millerhendersonandjohnson.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send LinkedIn DM to https://www.linkedin.com/in/jeffery-wagner
+2026-01-07 21:18:34,813 - INFO - Processing lead: jeffrey.lawrence@gonzalezsantosandgardner.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send email to jeffrey.lawrence@gonzalezsantosandgardner.com
+2026-01-07 21:18:34,813 - INFO - [DRY RUN] Would send LinkedIn DM to https://www.linkedin.com/in/jeffrey-lawrence
+2026-01-07 21:18:34,813 - INFO - Batch processing complete.
+2026-01-07 21:18:34,813 - INFO - Starting batch of 3 messages. Mode: LIVE
+2026-01-07 21:18:34,814 - INFO - Processing lead: donald.garcia@rodriguezfigueroaandsanchez.com
+2026-01-07 21:18:35,320 - INFO - Successfully sent to donald.garcia@rodriguezfigueroaandsanchez.com
+2026-01-07 21:18:35,321 - INFO - Rate limit sleep (6s)...
+2026-01-07 21:18:41,326 - INFO - Processing lead: jeffery.wagner@millerhendersonandjohnson.com
+2026-01-07 21:18:41,829 - INFO - Successfully sent to jeffery.wagner@millerhendersonandjohnson.com
+2026-01-07 21:18:41,830 - INFO - Rate limit sleep (6s)...
+2026-01-07 21:18:47,835 - INFO - Processing lead: jeffrey.lawrence@gonzalezsantosandgardner.com
+2026-01-07 21:18:48,341 - INFO - Successfully sent to jeffrey.lawrence@gonzalezsantosandgardner.com
+2026-01-07 21:18:48,341 - INFO - Rate limit sleep (6s)...
+2026-01-07 21:18:54,347 - INFO - Batch processing complete.
+2026-01-07 21:28:18,116 - INFO - Processing request of type CallToolRequest
+2026-01-07 21:28:18,124 - INFO - Processing request of type ListToolsRequest
+2026-01-07 21:28:18,125 - INFO - Processing request of type CallToolRequest
+2026-01-07 21:43:15,140 - INFO - Processing request of type CallToolRequest
+2026-01-07 21:43:15,144 - INFO - Processing request of type ListToolsRequest
+2026-01-07 21:43:15,146 - INFO - Processing request of type CallToolRequest
