@@ -7,7 +7,8 @@ import os
 # Ensure we point to the server.py file in the current directory
 SERVER_SCRIPT = os.path.join(os.getcwd(), "server.py")
 
-async def run_pipeline_step():
+async def run_pipeline_step(dry_run: bool = True):
+
     # Connect to the MCP Server
     server_params = StdioServerParameters(
         command="python",
@@ -42,7 +43,7 @@ async def run_pipeline_step():
                 
             elif stats_dict.get("MESSAGED", 0) > 0:
                 print("DECISION: Found MESSAGED leads. Sending outreach...")
-                await session.call_tool("send_outreach", arguments={"dry_run": True})
+                await session.call_tool("send_outreach", arguments={"dry_run": dry_run})
                 return "Outreach Triggered"
             
             else:
@@ -50,6 +51,10 @@ async def run_pipeline_step():
                 print("DECISION: Pipeline empty/finished. Generating new leads...")
                 await session.call_tool("generate_leads", arguments={"amount": 10})
                 return "New Leads Generated"
-
 if __name__ == "__main__":
-    asyncio.run(run_pipeline_step())
+    # Default is dry-run. Use --live to actually send (SMTP if configured).
+    dry_run = True
+    if "--live" in sys.argv:
+        dry_run = False
+
+    asyncio.run(run_pipeline_step(dry_run=dry_run))
