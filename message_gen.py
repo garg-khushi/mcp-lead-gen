@@ -42,6 +42,10 @@ LINKEDIN_TEMPLATES = {
     
     "B": """Hey {first_name}, impressive tenure as {role}. I'm curious if {pain_point} is on your radar for Q4? I'd love to share how we fix that."""
 }
+def assert_word_limit(text, max_words, label):
+    words = len(text.split())
+    if words > max_words:
+        raise ValueError(f"{label} exceeds {max_words} words ({words})")
 
 def generate_messages_batch(limit=50):
     conn = sqlite3.connect(DB_NAME)
@@ -68,11 +72,11 @@ def generate_messages_batch(limit=50):
         pain_point = enrichment['pain_points'][0] if enrichment['pain_points'] else "efficiency"
         
         # Select Random Variation (A/B Test)
-        email_variant = random.choice(["A", "B"])
-        linkedin_variant = random.choice(["A", "B"])
+        # email_variant = random.choice(["A", "B"])
+        # linkedin_variant = random.choice(["A", "B"])
         
         # Fill Email Template
-        email_body = EMAIL_TEMPLATES[email_variant].format(
+        email_a = EMAIL_TEMPLATES["A"].format(
             first_name=first_name,
             company=lead['company_name'],
             industry=lead['industry'],
@@ -80,22 +84,52 @@ def generate_messages_batch(limit=50):
             pain_point=pain_point.lower(),
             size=enrichment.get('company_size', 'growing')
         )
+
+        email_b = EMAIL_TEMPLATES["B"].format(
+            first_name=first_name,
+            company=lead['company_name'],
+            industry=lead['industry'],
+            role=lead['role'],
+            pain_point=pain_point.lower(),
+            size=enrichment.get('company_size', 'growing')
+        )
+
         
         # Fill LinkedIn Template
-        linkedin_body = LINKEDIN_TEMPLATES[linkedin_variant].format(
+        linkedin_a = LINKEDIN_TEMPLATES["A"].format(
             first_name=first_name,
             company=lead['company_name'],
             industry=lead['industry'],
             role=lead['role'],
             pain_point=pain_point.lower()
         )
-        
+
+        linkedin_b = LINKEDIN_TEMPLATES["B"].format(
+            first_name=first_name,
+            company=lead['company_name'],
+            industry=lead['industry'],
+            role=lead['role'],
+            pain_point=pain_point.lower()
+        )
+
+        assert_word_limit(email_a, 120, "Email A")
+        assert_word_limit(email_b, 120, "Email B")
+        assert_word_limit(linkedin_a, 60, "LinkedIn A")
+        assert_word_limit(linkedin_b, 60, "LinkedIn B")
+
         # Update DB
         cursor.execute('''
-            UPDATE leads 
-            SET message_email = ?, message_linkedin = ?, status = 'MESSAGED', last_updated = datetime('now')
+            UPDATE leads
+            SET
+                message_email_a = ?,
+                message_email_b = ?,
+                message_linkedin_a = ?,
+                message_linkedin_b = ?,
+                status = 'MESSAGED',
+                last_updated = datetime('now')
             WHERE id = ?
-        ''', (email_body, linkedin_body, lead['id']))
+        ''', (email_a, email_b, linkedin_a, linkedin_b, lead['id']))
+
         
     conn.commit()
     conn.close()

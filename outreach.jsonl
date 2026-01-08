@@ -1,0 +1,4 @@
+{"ts": "2026-01-08T10:31:31.958263Z", "level": "INFO", "stage": "send_outreach", "lead_id": 1, "email": "donald.garcia@rodriguezfigueroaandsanchez.com", "mode": "DRY_RUN", "event": "start_lead"}
+{"ts": "2026-01-08T10:31:31.958970Z", "level": "INFO", "stage": "send_outreach", "lead_id": 1, "email": "donald.garcia@rodriguezfigueroaandsanchez.com", "event": "dry_run_preview", "linkedin_url": "https://www.linkedin.com/in/donald-garcia", "email_words": 63, "linkedin_words": 26}
+{"ts": "2026-01-08T10:31:31.959084Z", "level": "INFO", "stage": "send_outreach", "lead_id": 2, "email": "jeffery.wagner@millerhendersonandjohnson.com", "mode": "DRY_RUN", "event": "start_lead"}
+{"ts": "2026-01-08T10:31:31.959194Z", "level": "INFO", "stage": "send_outreach", "lead_id": 2, "email": "jeffery.wagner@millerhendersonandjohnson.com", "event": "dry_run_preview", "linkedin_url": "https://www.linkedin.com/in/jeffery-wagner", "email_words": 65, "linkedin_words": 27}

@@ -21,9 +21,12 @@ def init_db():
             country TEXT,
             status TEXT DEFAULT 'NEW',
             enrichment_data TEXT,
-            message_email TEXT,
-            message_linkedin TEXT,
+            message_email_a TEXT,
+            message_email_b TEXT,
+            message_linkedin_a TEXT,
+            message_linkedin_b TEXT,
             last_updated TIMESTAMP
+
         )
     ''')
     conn.commit()
@@ -33,7 +36,9 @@ def init_db():
 def add_leads(leads_list):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    count = 0
+    cursor = conn.cursor()
+
+    # count = 0
     for lead in leads_list:
         try:
             # Use INSERT OR IGNORE to skip duplicates gracefully
@@ -45,41 +50,67 @@ def add_leads(leads_list):
                 lead['website'], lead['email'], lead['linkedin_url'], lead['country'], 
                 'NEW', datetime.now()
             ))
-            if cursor.rowcount > 0:
-                count += 1
+            # if cursor.rowcount > 0:
+            #     count += 1
         except sqlite3.Error as e:
             print(f"Error adding lead: {e}")
             
     conn.commit()
     conn.close()
-    print(f"Added {count} new leads to database (duplicates skipped).")
-    """Initialize the SQLite database with the required schema."""
+    added = conn.total_changes - before
+    print(f"Added {added} new leads to database (duplicates skipped).")
+
+    # print(f"Added {count} new leads to database (duplicates skipped).")
+    # """Initialize the SQLite database with the required schema."""
+    # conn = sqlite3.connect(DB_NAME)
+    # cursor = conn.cursor()
+    
+    # # Create leads table
+    # cursor.execute('''
+    #     CREATE TABLE IF NOT EXISTS leads (
+    #         id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #         full_name TEXT,
+    #         company_name TEXT,
+    #         role TEXT,
+    #         industry TEXT,
+    #         website TEXT,
+    #         email TEXT,
+    #         linkedin_url TEXT,
+    #         country TEXT,
+    #         status TEXT DEFAULT 'NEW',
+    #         enrichment_data TEXT,
+    #         message_email TEXT,
+    #         message_linkedin TEXT,
+    #         last_updated TIMESTAMP
+    #     )
+    # ''')
+    
+    # conn.commit()
+    # conn.close()
+    # print(f"Database {DB_NAME} initialized.")
+def add_leads(leads_list):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    # Create leads table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS leads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            full_name TEXT,
-            company_name TEXT,
-            role TEXT,
-            industry TEXT,
-            website TEXT,
-            email TEXT,
-            linkedin_url TEXT,
-            country TEXT,
-            status TEXT DEFAULT 'NEW',
-            enrichment_data TEXT,
-            message_email TEXT,
-            message_linkedin TEXT,
-            last_updated TIMESTAMP
-        )
-    ''')
-    
+    before = conn.total_changes
+
+    for lead in leads_list:
+        try:
+            cursor.execute('''
+                INSERT OR IGNORE INTO leads
+                (full_name, company_name, role, industry, website, email, linkedin_url, country, status, last_updated)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                lead['full_name'], lead['company_name'], lead['role'], lead['industry'],
+                lead['website'], lead['email'], lead['linkedin_url'], lead['country'],
+                'NEW', datetime.now()
+            ))
+        except sqlite3.Error as e:
+            print(f"Error adding lead: {e}")
+
     conn.commit()
+    added = conn.total_changes - before
     conn.close()
-    print(f"Database {DB_NAME} initialized.")
+    print(f"Added {added} new leads to database (duplicates skipped).")
 
 
 def get_leads_by_status(status):

@@ -51,12 +51,49 @@ with tab_dashboard:
                 st.sidebar.error(result.stderr)
         time.sleep(1)
         st.rerun()
+        if st.sidebar.button("🚀 Run Full Pipeline"):
+            with st.spinner("Running full pipeline: generate → enrich → message → send"):
+                cmds = [
+                    ["python", "-c", "from lead_gen import generate_leads; from database import init_db, add_leads; init_db(); add_leads(generate_leads(count=200, seed=42))"],
+                    ["python", "enrichment.py"],
+                    ["python", "message_gen.py"],
+            ]
+
+            # Send step: dry-run vs live-run
+                if run_mode == "Dry Run":
+                    cmds.append(["python", "-c", "from sender import send_outreach_batch; send_outreach_batch(limit=200, dry_run=True)"])
+                else:
+                    cmds.append(["python", "-c", "from sender import send_outreach_batch; send_outreach_batch(limit=200, dry_run=False)"])
+
+            logs = []
+            ok = True
+            for cmd in cmds:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                logs.append({"cmd": " ".join(cmd), "stdout": result.stdout, "stderr": result.stderr, "code": result.returncode})
+                if result.returncode != 0:
+                    ok = False
+                    break
+
+            if ok:
+                st.sidebar.success("Full Pipeline Complete!")
+            else:
+                st.sidebar.error("Full Pipeline Failed")
+
+            with st.sidebar.expander("See Pipeline Logs"):
+                st.json(logs)
+
+        time.sleep(1)
+        st.rerun()
 
     if st.sidebar.button("🔄 Refresh Data"):
         st.rerun()
 
     st.sidebar.markdown("---")
     st.sidebar.header("Export")
+    st.sidebar.header("Actions")
+    run_mode = st.sidebar.radio("Run Mode", ["Dry Run", "Live Run"], index=0)
+    st.sidebar.caption("Dry Run = no real sending; Live Run = SMTP send (if configured).")
+
     try:
         csv_data = get_data().to_csv(index=False).encode('utf-8')
         st.sidebar.download_button(

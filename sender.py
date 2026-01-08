@@ -3,16 +3,30 @@ import time
 import random
 import logging
 from database import DB_NAME
+import json
+from datetime import datetime
+
+LOG_FILE = "outreach.jsonl"
+
+def log_event(event: dict):
+    event = {
+        "ts": datetime.utcnow().isoformat() + "Z",
+        **event,
+    }
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(event, ensure_ascii=False) + "\n")
+    # Also print for terminal visibility
+    print(event)
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("outreach.log"),
-        logging.StreamHandler()
-    ]
-)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.FileHandler("outreach.log"),
+#         logging.StreamHandler()
+#     ]
+# )
 
 def send_email_smtp(to_email, subject, body):
     """
@@ -47,49 +61,66 @@ def process_outreach_batch(dry_run=True, limit=5):
     
     for row in rows:
         lead = dict(row)
-        
+        lead_id = lead["id"]
+        email = lead["email"]
+
+        email_body = lead.get("message_email_a") or ""
+        linkedin_body = lead.get("message_linkedin_a") or ""
+
         try:
-            logging.info(f"Processing lead: {lead['email']}")
-            
+            log_event({"level": "INFO", "stage": "send_outreach", "lead_id": lead_id, "email": email, "mode": "DRY_RUN" if dry_run else "LIVE", "event": "start_lead"})
+
             if dry_run:
-                # Dry Run: Just log what would happen
-                logging.info(f"[DRY RUN] Would send email to {lead['email']}")
-                logging.info(f"[DRY RUN] Would send LinkedIn DM to {lead['linkedin_url']}")
-            else:
-                # Live Mode: Attempt to send with Retries
-                max_retries = 2
-                sent = False
-                
-                for attempt in range(max_retries + 1):
-                    try:
-                        # Send Email (Simulated)
-                        send_email_smtp(lead['email'], "Subject Here", lead['message_email'])
-                        
-                        # Send LinkedIn (Simulated)
-                        # send_linkedin_dm(...) 
-                        
-                        sent = True
-                        break # Success, exit retry loop
-                    except Exception as e:
-                        logging.warning(f"Attempt {attempt+1} failed for {lead['email']}: {e}")
-                        time.sleep(1) # Backoff before retry
-                
-                if sent:
-                    cursor.execute("UPDATE leads SET status='SENT', last_updated=datetime('now') WHERE id=?", (lead['id'],))
-                    logging.info(f"Successfully sent to {lead['email']}")
-                else:
-                    cursor.execute("UPDATE leads SET status='FAILED', last_updated=datetime('now') WHERE id=?", (lead['id'],))
-                    logging.error(f"Failed to send to {lead['email']} after retries")
-                
+                log_event({
+                    "level": "INFO",
+                    "stage": "send_outreach",
+                    "lead_id": lead_id,
+                    "email": email,
+                    "event": "dry_run_preview",
+                    "linkedin_url": lead.get("linkedin_url"),
+                    "email_words": len(email_body.split()),
+                    "linkedin_words": len(linkedin_body.split()),
+                })
+                # Do NOT update DB in dry-run
+                continue
+
+            max_retries = 2
+            sent = False
+            last_error = None
+
+            for attempt in range(1, max_retries + 2):  # 1..3
+                try:
+                    log_event({"level": "INFO", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "attempt", "attempt": attempt})
+
+                    # Send Email (Simulated)
+                    send_email_smtp(email, "Quick question", email_body)
+
+                    # LinkedIn DM (Simulated)
+                    # send_linkedin_dm(...)
+
+                    sent = True
+                    log_event({"level": "INFO", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "attempt_success", "attempt": attempt})
+                    break
+                except Exception as e:
+                    last_error = str(e)
+                    log_event({"level": "WARN", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "attempt_failed", "attempt": attempt, "error": last_error})
+                    time.sleep(1)
+
+            if sent:
+                cursor.execute("UPDATE leads SET status='SENT', last_updated=datetime('now') WHERE id=?", (lead_id,))
                 conn.commit()
-                
-                # Rate Limiting: Max 10 per minute = 1 every 6 seconds
-                # We sleep here to enforce it
-                logging.info("Rate limit sleep (6s)...")
-                time.sleep(6)
-                
+                log_event({"level": "INFO", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "lead_sent"})
+            else:
+                cursor.execute("UPDATE leads SET status='FAILED', last_updated=datetime('now') WHERE id=?", (lead_id,))
+                conn.commit()
+                log_event({"level": "ERROR", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "lead_failed", "error": last_error})
+
+            # Rate limit: 10/min = 6s per message
+            log_event({"level": "INFO", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "rate_limit_sleep", "seconds": 6})
+            time.sleep(6)
+
         except Exception as e:
-            logging.error(f"Critical error processing lead {lead['id']}: {e}")
+            log_event({"level": "ERROR", "stage": "send_outreach", "lead_id": lead_id, "email": email, "event": "critical_error", "error": str(e)})
 
     conn.close()
     logging.info("Batch processing complete.")

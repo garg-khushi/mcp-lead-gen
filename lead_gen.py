@@ -5,7 +5,7 @@ from faker import Faker
 from database import init_db, add_leads
 
 # Set a seed for reproducibility
-Faker.seed(42)
+# Faker.seed(42)
 fake = Faker()
 
 CONFIG_FILE = "config.json"
@@ -18,9 +18,14 @@ def load_config():
     with open(CONFIG_FILE, "r") as f:
         return json.load(f)
 
-def generate_leads(count=200):
-    # LOAD CONFIG DYNAMICALLY
+def generate_leads(count=200,seed=None):
     industries_map = load_config()
+    if seed is not None:
+        random.seed(seed)
+        Faker.seed(seed)
+
+    # LOAD CONFIG DYNAMICALLY
+    
     
     leads = []
     print(f"Generating {count} leads using configurable rules...")
@@ -55,7 +60,7 @@ def generate_leads(count=200):
 
 if __name__ == "__main__":
     init_db()
-    generated_data = generate_leads(210)
+    generated_data = generate_leads(count=200, seed=42)
     add_leads(generated_data)
 # import random
 # from faker import Faker
